@@ -14,7 +14,59 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      conversations: {
+        Row: {
+          created_at: string
+          id: string
+          messages: Json
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          messages?: Json
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          messages?: Json
+          status?: string
+        }
+        Relationships: []
+      }
+      wisdom_entries: {
+        Row: {
+          created_at: string
+          id: string
+          language: string
+          source_conversation_id: string | null
+          text: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          language: string
+          source_conversation_id?: string | null
+          text: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          language?: string
+          source_conversation_id?: string | null
+          text?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wisdom_entries_source_conversation_id_fkey"
+            columns: ["source_conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
