@@ -1,4 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -15,16 +17,40 @@ export const Route = createFileRoute("/")({
 });
 
 function Landing() {
+  const [signedIn, setSignedIn] = useState(false);
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => setSignedIn(!!data.session));
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => setSignedIn(!!session));
+    return () => sub.subscription.unsubscribe();
+  }, []);
+
   return (
     <div className="min-h-screen">
       <header className="mx-auto flex max-w-4xl items-center justify-between px-6 py-6">
         <div className="font-serif text-2xl">Qissa</div>
-        <Link
-          to="/wisdom"
-          className="text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
-        >
-          Wisdom Wall →
-        </Link>
+        <div className="flex items-center gap-5 text-sm">
+          <Link
+            to="/wisdom"
+            className="text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+          >
+            Wisdom Wall →
+          </Link>
+          {signedIn ? (
+            <Link
+              to="/dashboard"
+              className="rounded-full bg-primary px-4 py-2 font-medium text-primary-foreground transition hover:opacity-90"
+            >
+              Dashboard
+            </Link>
+          ) : (
+            <Link
+              to="/auth"
+              className="rounded-full border border-border px-4 py-2 font-medium text-foreground transition hover:bg-accent"
+            >
+              Sign in
+            </Link>
+          )}
+        </div>
       </header>
 
       <main className="mx-auto max-w-2xl px-6 pt-16 pb-24 text-center">
