@@ -6,7 +6,7 @@ export const Route = createFileRoute("/")({
       { title: "Qissa — A warm companion who listens" },
       { name: "description", content: "Qissa is a gentle chat companion for elders. Share your stories and wisdom in English or Urdu — anonymized reflections join the public Wisdom Wall." },
       { property: "og:title", content: "Qissa — A warm companion who listens" },
-      { property: "og:description", content: "Share stories in English or Urdu with a kind AI listener. Your wisdom, anonymized, lives on the Wisdom Wall." },
+      { property: "og:description", content: "Qissa is a gentle chat companion for elders. Share your stories and wisdom in English or Urdu — anonymized reflections join the public Wisdom Wall." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
