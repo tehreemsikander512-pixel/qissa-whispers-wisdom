@@ -26,7 +26,7 @@ function Dashboard() {
 
   async function signOut() {
     await supabase.auth.signOut();
-    navigate({ to: "/", replace: true });
+    navigate({ to: "/login", replace: true });
   }
 
   return (
@@ -39,7 +39,7 @@ function Dashboard() {
             onClick={signOut}
             className="rounded-full border border-border px-4 py-2 text-sm font-medium text-foreground transition hover:bg-accent"
           >
-            Sign out
+            Logout
           </button>
         </div>
       </header>

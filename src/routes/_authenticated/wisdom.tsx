@@ -23,7 +23,7 @@ const wisdomQuery = queryOptions({
   },
 });
 
-export const Route = createFileRoute("/wisdom")({
+export const Route = createFileRoute("/_authenticated/wisdom")({
   ssr: false,
   head: () => ({
     meta: [
