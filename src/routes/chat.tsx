@@ -131,13 +131,21 @@ function ChatPage() {
             <div key={i} className={m.role === "user" ? "flex justify-end" : "flex justify-start"}>
               <div
                 className={
-                  m.role === "user"
-                    ? "max-w-[80%] rounded-2xl rounded-br-md bg-primary px-5 py-3 text-primary-foreground shadow-sm"
-                    : "max-w-[80%] rounded-2xl rounded-bl-md bg-card px-5 py-3 text-card-foreground shadow-sm"
+                  m.blocked
+                    ? "max-w-[80%] rounded-2xl rounded-bl-md border border-destructive/40 bg-destructive/10 px-5 py-3 text-destructive shadow-sm"
+                    : m.role === "user"
+                      ? "max-w-[80%] rounded-2xl rounded-br-md bg-primary px-5 py-3 text-primary-foreground shadow-sm"
+                      : "max-w-[80%] rounded-2xl rounded-bl-md bg-card px-5 py-3 text-card-foreground shadow-sm"
                 }
               >
+                {m.blocked && (
+                  <p className="mb-1 text-xs font-semibold uppercase tracking-wide opacity-80">
+                    Message blocked
+                  </p>
+                )}
                 <p className="whitespace-pre-wrap">{m.content}</p>
               </div>
+
             </div>
           ))}
           {loading && (
