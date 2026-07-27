@@ -168,23 +168,36 @@ function ChatPage() {
       </div>
 
       <form onSubmit={submit} className="border-t border-border bg-card/60 px-4 py-4 backdrop-blur sm:px-6">
-        <div className="mx-auto flex max-w-2xl gap-3">
-          <input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="Write in English, Urdu, or Roman Urdu..."
-            className="flex-1 rounded-full border border-input bg-background px-5 py-3 text-base outline-none focus:ring-2 focus:ring-ring"
-            disabled={loading}
-          />
-          <button
-            type="submit"
-            disabled={loading || !input.trim()}
-            className="rounded-full bg-primary px-6 py-3 font-medium text-primary-foreground transition hover:opacity-90 disabled:opacity-50"
-          >
-            Send
-          </button>
+        <div className="mx-auto max-w-2xl">
+          {isBlocked && (
+            <p className="mb-3 rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-2 text-sm text-destructive">
+              Chatting is paused for {Math.floor(secondsLeft / 60)}:
+              {String(secondsLeft % 60).padStart(2, "0")}. Let's pick this up again in a moment.
+            </p>
+          )}
+          <div className="flex gap-3">
+            <input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder={
+                isBlocked
+                  ? "Chatting is paused for a few minutes..."
+                  : "Write in English, Urdu, or Roman Urdu..."
+              }
+              className="flex-1 rounded-full border border-input bg-background px-5 py-3 text-base outline-none focus:ring-2 focus:ring-ring disabled:opacity-60"
+              disabled={loading || isBlocked}
+            />
+            <button
+              type="submit"
+              disabled={loading || isBlocked || !input.trim()}
+              className="rounded-full bg-primary px-6 py-3 font-medium text-primary-foreground transition hover:opacity-90 disabled:opacity-50"
+            >
+              Send
+            </button>
+          </div>
         </div>
       </form>
+
     </div>
   );
 }
