@@ -17,7 +17,17 @@ export const Route = createFileRoute("/chat")({
   component: ChatPage,
 });
 
-type Msg = { role: "user" | "assistant"; content: string };
+type Msg = { role: "user" | "assistant"; content: string; blocked?: boolean };
+
+function getSessionId() {
+  const KEY = "qissa-session-id";
+  let id = sessionStorage.getItem(KEY);
+  if (!id) {
+    id = crypto.randomUUID();
+    sessionStorage.setItem(KEY, id);
+  }
+  return id;
+}
 
 function ChatPage() {
   const send = useServerFn(sendChatMessage);
@@ -32,7 +42,18 @@ function ChatPage() {
   const [loading, setLoading] = useState(false);
   const [ending, setEnding] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [blockedUntil, setBlockedUntil] = useState<number | null>(null);
+  const [now, setNow] = useState(() => Date.now());
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  const isBlocked = blockedUntil !== null && blockedUntil > now;
+  const secondsLeft = isBlocked ? Math.ceil((blockedUntil! - now) / 1000) : 0;
+
+  useEffect(() => {
+    if (blockedUntil === null) return;
+    const t = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, [blockedUntil]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
@@ -41,16 +62,35 @@ function ChatPage() {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     const text = input.trim();
-    if (!text || loading) return;
+    if (!text || loading || isBlocked) return;
     setError(null);
     const nextUserMsgs: Msg[] = [...messages, { role: "user", content: text }];
     setMessages(nextUserMsgs);
     setInput("");
     setLoading(true);
     try {
-      const res = await send({ data: { conversationId, messages: nextUserMsgs } });
+      const res = await send({
+        data: {
+          conversationId,
+          sessionId: getSessionId(),
+          messages: nextUserMsgs.map(({ role, content }) => ({ role, content })),
+        },
+      });
+
+      if (res.moderation) {
+        if (res.moderation.blockedUntil) {
+          setBlockedUntil(new Date(res.moderation.blockedUntil).getTime());
+          setNow(Date.now());
+        }
+        setMessages([
+          ...nextUserMsgs,
+          { role: "assistant", content: res.moderation.message, blocked: true },
+        ]);
+        return;
+      }
+
       setConversationId(res.conversationId);
-      setMessages([...nextUserMsgs, { role: "assistant", content: res.reply }]);
+      setMessages([...nextUserMsgs, { role: "assistant", content: res.reply ?? "" }]);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
       setMessages(messages);
@@ -70,6 +110,7 @@ function ChatPage() {
       setEnding(false);
     }
   }
+
 
   return (
     <div className="flex h-screen flex-col">
