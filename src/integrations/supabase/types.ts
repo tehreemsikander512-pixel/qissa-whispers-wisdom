@@ -35,6 +35,39 @@ export type Database = {
         }
         Relationships: []
       }
+      moderation_events: {
+        Row: {
+          blocked: boolean
+          categories: string[]
+          conversation_id: string | null
+          created_at: string
+          id: string
+          message: string
+          offense_count: number
+          session_id: string
+        }
+        Insert: {
+          blocked?: boolean
+          categories?: string[]
+          conversation_id?: string | null
+          created_at?: string
+          id?: string
+          message: string
+          offense_count?: number
+          session_id: string
+        }
+        Update: {
+          blocked?: boolean
+          categories?: string[]
+          conversation_id?: string | null
+          created_at?: string
+          id?: string
+          message?: string
+          offense_count?: number
+          session_id?: string
+        }
+        Relationships: []
+      }
       wisdom_entries: {
         Row: {
           created_at: string

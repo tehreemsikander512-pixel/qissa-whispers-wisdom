@@ -8,8 +8,13 @@ const MessageSchema = z.object({
 
 const ChatInput = z.object({
   conversationId: z.string().uuid().nullable(),
+  sessionId: z.string().min(1).max(100),
   messages: z.array(MessageSchema).min(1),
 });
+
+const OFFENSE_WINDOW_MINUTES = 30;
+const BLOCK_MINUTES = 5;
+
 
 const WisdomInput = z.object({
   conversationId: z.string().uuid(),
@@ -69,11 +74,79 @@ export const sendChatMessage = createServerFn({ method: "POST" })
   .inputValidator((d: unknown) => ChatInput.parse(d))
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { moderateText, moderationMessage } = await import("./moderation.server");
+
+    const lastUser = [...data.messages].reverse().find((m) => m.role === "user");
+
+    // 1. Is this session currently serving a temporary block?
+    const blockCutoff = new Date(Date.now() - BLOCK_MINUTES * 60_000).toISOString();
+    const { data: activeBlock } = await supabaseAdmin
+      .from("moderation_events")
+      .select("created_at")
+      .eq("session_id", data.sessionId)
+      .eq("blocked", true)
+      .gte("created_at", blockCutoff)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (activeBlock) {
+      const until = new Date(new Date(activeBlock.created_at).getTime() + BLOCK_MINUTES * 60_000);
+      return {
+        conversationId: data.conversationId,
+        reply: null as string | null,
+        moderation: {
+          blocked: true,
+          offense: 3,
+          message: moderationMessage(3),
+          blockedUntil: until.toISOString(),
+        },
+      };
+    }
+
+    // 2. Moderate the new user message before it ever reaches the AI.
+    if (lastUser) {
+      const verdict = await moderateText(lastUser.content);
+      if (verdict.flagged) {
+        const offenseCutoff = new Date(Date.now() - OFFENSE_WINDOW_MINUTES * 60_000).toISOString();
+        const { count } = await supabaseAdmin
+          .from("moderation_events")
+          .select("id", { count: "exact", head: true })
+          .eq("session_id", data.sessionId)
+          .gte("created_at", offenseCutoff);
+
+        const offense = (count ?? 0) + 1;
+        const blocked = offense >= 3;
+
+        await supabaseAdmin.from("moderation_events").insert({
+          session_id: data.sessionId,
+          conversation_id: data.conversationId,
+          message: lastUser.content.slice(0, 2000),
+          categories: verdict.categories,
+          offense_count: offense,
+          blocked,
+        });
+
+        return {
+          conversationId: data.conversationId,
+          reply: null as string | null,
+          moderation: {
+            blocked,
+            offense,
+            message: moderationMessage(offense),
+            blockedUntil: blocked
+              ? new Date(Date.now() + BLOCK_MINUTES * 60_000).toISOString()
+              : null,
+          },
+        };
+      }
+    }
 
     const reply = await callLovableAI([
       { role: "system", content: SYSTEM_PROMPT },
       ...data.messages,
     ]);
+
 
     const fullMessages = [...data.messages, { role: "assistant", content: reply }];
 
@@ -93,7 +166,17 @@ export const sendChatMessage = createServerFn({ method: "POST" })
       conversationId = inserted.id;
     }
 
-    return { conversationId, reply };
+    return {
+      conversationId,
+      reply: reply as string | null,
+      moderation: null as null | {
+        blocked: boolean;
+        offense: number;
+        message: string;
+        blockedUntil: string | null;
+      },
+    };
+
   });
 
 export const endConversationAndExtractWisdom = createServerFn({ method: "POST" })
