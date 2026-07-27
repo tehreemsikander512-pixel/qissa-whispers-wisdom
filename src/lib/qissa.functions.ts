@@ -166,7 +166,17 @@ export const sendChatMessage = createServerFn({ method: "POST" })
       conversationId = inserted.id;
     }
 
-    return { conversationId, reply };
+    return {
+      conversationId,
+      reply: reply as string | null,
+      moderation: null as null | {
+        blocked: boolean;
+        offense: number;
+        message: string;
+        blockedUntil: string | null;
+      },
+    };
+
   });
 
 export const endConversationAndExtractWisdom = createServerFn({ method: "POST" })
