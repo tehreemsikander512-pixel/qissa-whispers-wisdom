@@ -3,7 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useRef, useState } from "react";
 import { sendChatMessage, endConversationAndExtractWisdom } from "@/lib/qissa.functions";
 
-export const Route = createFileRoute("/_authenticated/chat")({
+export const Route = createFileRoute("/chat")({
   head: () => ({
     meta: [
       { title: "Chat with Qissa" },
