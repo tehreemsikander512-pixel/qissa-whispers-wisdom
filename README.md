@@ -44,7 +44,7 @@ The elder never sees this second step happen. They just talked to someone who li
 
 ## Live App
 
-🔗 **https://qissa-whispers-wisdom.lovable.app**
+🔗 **https://qissa-whispers-cloud.lovable.app**
 
 Open it, start a conversation in English, Urdu, or Roman Urdu, end it, then check the Wisdom Wall to see what gets preserved.
 
