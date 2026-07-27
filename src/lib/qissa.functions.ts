@@ -8,8 +8,13 @@ const MessageSchema = z.object({
 
 const ChatInput = z.object({
   conversationId: z.string().uuid().nullable(),
+  sessionId: z.string().min(1).max(100),
   messages: z.array(MessageSchema).min(1),
 });
+
+const OFFENSE_WINDOW_MINUTES = 30;
+const BLOCK_MINUTES = 5;
+
 
 const WisdomInput = z.object({
   conversationId: z.string().uuid(),
