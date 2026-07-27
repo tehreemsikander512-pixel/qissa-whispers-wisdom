@@ -1,9 +1,6 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { createFileRoute, Link } from "@tanstack/react-router";
 
 export const Route = createFileRoute("/")({
-  ssr: false,
   head: () => ({
     meta: [
       { title: "Qissa — A warm companion who listens" },
@@ -18,28 +15,6 @@ export const Route = createFileRoute("/")({
 });
 
 function Landing() {
-  const navigate = useNavigate();
-  const [checked, setChecked] = useState(false);
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      if (!data.session) {
-        navigate({ to: "/login", search: { redirect: "/" }, replace: true });
-      } else {
-        setChecked(true);
-      }
-    });
-  }, [navigate]);
-
-  async function signOut() {
-    await supabase.auth.signOut();
-    navigate({ to: "/login", replace: true });
-  }
-
-  if (!checked) {
-    return <div className="flex min-h-screen items-center justify-center text-muted-foreground">Loading…</div>;
-  }
-
   return (
     <div className="min-h-screen">
       <header className="mx-auto flex max-w-4xl items-center justify-between px-6 py-6">
@@ -48,17 +23,12 @@ function Landing() {
           <Link to="/wisdom" className="text-muted-foreground underline-offset-4 hover:text-foreground hover:underline">
             Wisdom Wall →
           </Link>
-          <Link to="/dashboard" className="rounded-full bg-primary px-4 py-2 font-medium text-primary-foreground transition hover:opacity-90">
-            Dashboard
+          <Link to="/chat" className="rounded-full bg-primary px-4 py-2 font-medium text-primary-foreground transition hover:opacity-90">
+            Start Talking
           </Link>
-          <button
-            onClick={signOut}
-            className="rounded-full border border-border px-4 py-2 font-medium text-foreground transition hover:bg-accent"
-          >
-            Logout
-          </button>
         </div>
       </header>
+
 
       <main className="mx-auto max-w-2xl px-6 pt-16 pb-24 text-center">
         <p className="mb-4 text-sm uppercase tracking-[0.2em] text-muted-foreground">
